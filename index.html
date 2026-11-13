@@ -1,0 +1,1325 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<title>DARA | مدیریت مالی شخصی</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: right-docked sidebar + content column; summary cards first, then flow chart beside the expense donut, then recent activity beside quick actions.
+   Palette (dark-first): navy ground, violet accent, emerald income, coral expense. Type: Vazirmatn throughout. */
+:root{
+  --bg:#0B1020; --side:#10182B; --card:#151F33; --card2:#1B2842; --fg:#F8FAFC; --fg2:#94A3B8; --fg3:#7C8AA5;
+  --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.15);
+  --accent:#8B5CF6; --accent-soft:rgba(139,92,246,.16); --accent-line:rgba(139,92,246,.38);
+  --inc:#10B981; --inc-soft:rgba(16,185,129,.14); --exp:#F87171; --exp-soft:rgba(248,113,113,.14);
+  --glow:rgba(139,92,246,.13);
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 28px -16px rgba(0,0,0,.6);
+  --scrim:rgba(4,7,18,.62);
+  --font:'Vazirmatn',system-ui,'Segoe UI',Tahoma,sans-serif;
+  color-scheme:dark;
+}
+:root[data-dara="light"]{
+  --bg:#F3F5FA; --side:#FFFFFF; --card:#FFFFFF; --card2:#F1F4FA; --fg:#0F172A; --fg2:#566179; --fg3:#6B7690;
+  --line:rgba(15,23,42,.09); --line2:rgba(15,23,42,.17);
+  --accent:#7C3AED; --accent-soft:rgba(124,58,237,.10); --accent-line:rgba(124,58,237,.34);
+  --inc:#059669; --inc-soft:rgba(5,150,105,.11); --exp:#DC4C4C; --exp-soft:rgba(220,76,76,.10);
+  --glow:rgba(124,58,237,.08);
+  --shadow:0 1px 2px rgba(15,23,42,.06),0 12px 28px -18px rgba(15,23,42,.22);
+  --scrim:rgba(15,23,42,.38);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:radial-gradient(900px 420px at 88% -8%,var(--glow),transparent 70%) no-repeat var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100dvh}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+h1,h2,h3,p{margin:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* shell */
+.app{display:flex;min-height:100dvh}
+.side-wrap{position:relative;flex:none;width:264px}
+.sidebar{position:sticky;top:0;height:100dvh;width:100%;background:var(--side);border-inline-end:1px solid var(--line);display:flex;flex-direction:column;padding:22px 14px 16px;gap:22px;transition:width .2s ease}
+.brand{display:flex;align-items:center;gap:12px;padding:0 8px;min-height:40px}
+.brand-t{display:flex;flex-direction:column;line-height:1.15}
+.brand-t b{font-size:21px;font-weight:800;letter-spacing:.14em;font-family:var(--font)}
+.brand-t span{font-size:11.5px;color:var(--fg3);margin-top:3px}
+.rail-toggle{display:none;margin-inline-start:auto;width:32px;height:32px;border-radius:9px;color:var(--fg2);place-items:center}
+.rail-toggle:hover{background:var(--card2);color:var(--fg)}
+.nav{display:flex;flex-direction:column;gap:4px}
+.nav-i{display:flex;align-items:center;gap:12px;height:46px;padding:0 14px;border-radius:12px;color:var(--fg2);font-weight:500;text-align:start;transition:background .15s,color .15s;white-space:nowrap}
+.nav-i:hover{background:var(--card2);color:var(--fg)}
+.nav-i[aria-current="page"]{background:var(--accent-soft);color:var(--fg);font-weight:600}
+.nav-i[aria-current="page"] svg{color:var(--accent)}
+.profile{margin-top:auto;display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:var(--card);border:1px solid var(--line);text-align:start;width:100%}
+.profile:hover{border-color:var(--line2)}
+.profile .meta{min-width:0;display:flex;flex-direction:column;line-height:1.35}
+.profile .meta b{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profile .meta span{font-size:12px;color:var(--fg3)}
+.avatar{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:16px;color:#fff;background:linear-gradient(145deg,#A78BFA,#6D3FE0)}
+.avatar.sm{width:38px;height:38px;font-size:15px}
+.main{flex:1;min-width:0;padding:26px 36px 48px;max-width:1480px}
+.head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:26px}
+.head h1{font-size:24px;font-weight:700;line-height:1.35}
+.head p{color:var(--fg2);font-size:14px;margin-top:2px}
+.head-r{display:flex;align-items:center;gap:10px;flex:none}
+.datepill{display:flex;align-items:center;gap:8px;height:42px;padding:0 14px;border-radius:12px;background:var(--card);border:1px solid var(--line);color:var(--fg2);font-size:13.5px;white-space:nowrap}
+.icon-btn{position:relative;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--card);border:1px solid var(--line);color:var(--fg2);transition:border-color .15s,color .15s,background .15s}
+.icon-btn:hover{color:var(--fg);border-color:var(--line2)}
+.icon-btn.flat{background:transparent;border-color:transparent;width:34px;height:34px;border-radius:9px}
+.icon-btn.flat:hover{background:var(--card2)}
+.icon-btn.danger:hover{color:var(--exp);background:var(--exp-soft)}
+.dot{position:absolute;top:10px;inset-inline-start:11px;width:8px;height:8px;border-radius:50%;background:var(--exp);box-shadow:0 0 0 2px var(--card)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:42px;padding:0 18px;border-radius:12px;font-weight:600;font-size:14.5px;transition:transform .12s,background .15s,border-color .15s,box-shadow .15s;white-space:nowrap}
+.btn:active{transform:translateY(1px)}
+.btn-p{background:var(--accent);color:#fff;box-shadow:0 8px 20px -10px var(--accent)}
+.btn-p:hover{filter:brightness(1.08)}
+.btn-g{background:var(--card);border:1px solid var(--line);color:var(--fg)}
+.btn-g:hover{border-color:var(--line2);background:var(--card2)}
+.btn-d{background:var(--exp);color:#1a0b0b}
+.btn-d:hover{filter:brightness(1.06)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.pop-w{position:relative}
+.pop{position:absolute;top:calc(100% + 10px);left:0;width:min(330px,calc(100vw - 32px));background:var(--card);border:1px solid var(--line2);border-radius:16px;box-shadow:0 24px 48px -16px rgba(0,0,0,.55);z-index:40;overflow:hidden;animation:rise .16s ease}
+.pop h3{font-size:14px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.pop-i{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.pop-i:last-child{border:0}
+.pop-i p{font-size:13.5px;line-height:1.6}
+.pop-i small{display:block;color:var(--fg3);font-size:12px;margin-top:2px}
+
+/* cards */
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);min-width:0}
+.pad{padding:20px}
+.card-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
+.card-h h2{font-size:16px;font-weight:700}
+.card-h p{font-size:12.5px;color:var(--fg3);margin-top:1px}
+.link{display:inline-flex;align-items:center;gap:4px;color:var(--accent);font-weight:600;font-size:13.5px;border-radius:8px;padding:4px 6px}
+.link:hover{background:var(--accent-soft)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:20px}
+.stat{padding:18px 18px 16px;position:relative;overflow:hidden;transition:transform .2s ease,border-color .2s}
+.stat:hover{transform:translateY(-2px);border-color:var(--line2)}
+.stat.hero{background:linear-gradient(160deg,var(--accent-soft),var(--card) 62%);border-color:var(--accent-line)}
+.stat-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
+.chip-i{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;flex:none}
+.stat-l{font-size:13.5px;color:var(--fg2)}
+.stat-v{font-size:25px;font-weight:700;line-height:1.25;letter-spacing:-.01em}
+.stat-v small{font-size:13px;font-weight:500;color:var(--fg2);margin-inline-start:6px}
+.trend{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 9px;border-radius:99px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.trend.up{background:var(--inc-soft);color:var(--inc)}
+.trend.down{background:var(--exp-soft);color:var(--exp)}
+.trend.neutral{background:var(--accent-soft);color:var(--fg)}
+.stat-f{margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:26px}
+.stat-f span.sub{font-size:12.5px;color:var(--fg3)}
+.g2{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(0,1fr);gap:20px;margin-bottom:20px}
+.legend-r{display:flex;gap:16px;flex-wrap:wrap}
+.lg{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--fg2)}
+.lg i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.chart{height:300px;direction:ltr}
+.chart.sm{height:240px}
+.tip{background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:10px 12px;box-shadow:0 16px 32px -14px rgba(0,0,0,.6);font-size:13px;min-width:170px;direction:rtl;font-family:var(--font)}
+.tip-t{font-weight:700;margin-bottom:6px}
+.tip-r{display:flex;align-items:center;justify-content:space-between;gap:16px;color:var(--fg2);padding:2px 0}
+.tip-r span:first-child{display:inline-flex;align-items:center;gap:7px}
+.tip-r i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.tip-r b{color:var(--fg);font-weight:600}
+.tip-s{border-top:1px solid var(--line);margin-top:6px;padding-top:6px}
+.donut{position:relative;height:210px;direction:ltr}
+.donut-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;direction:rtl;text-align:center}
+.donut-c small{font-size:12px;color:var(--fg3)}
+.donut-c b{font-size:21px;font-weight:700;line-height:1.3}
+.donut-c span{font-size:12px;color:var(--fg2)}
+.dl{display:flex;flex-direction:column;gap:2px;margin-top:10px}
+.dl-r{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:10px;font-size:13.5px;transition:background .15s;cursor:default}
+.dl-r:hover,.dl-r.on{background:var(--card2)}
+.dl-r i{width:10px;height:10px;border-radius:3px;flex:none}
+.dl-r .n{flex:1;min-width:0;color:var(--fg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dl-r b{font-weight:600;font-variant-numeric:tabular-nums}
+.g3{display:grid;grid-template-columns:minmax(0,1.9fr) minmax(0,1fr);gap:20px}
+.txl{display:flex;flex-direction:column}
+.tx{display:flex;align-items:center;gap:14px;padding:12px 8px;border-radius:12px;transition:background .15s}
+.tx:hover{background:var(--card2)}
+.tx + .tx{border-top:1px solid var(--line)}
+.tx:hover + .tx,.tx:hover{border-top-color:transparent}
+.tx-m{flex:1;min-width:0}
+.tx-m b{display:block;font-weight:600;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tx-m span{font-size:12.5px;color:var(--fg3)}
+.amt{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:end}
+.amt bdi{direction:ltr;unicode-bidi:isolate}
+.amt small{font-size:11.5px;font-weight:500;color:var(--fg3);margin-inline-start:4px}
+.amt.i{color:var(--inc)}.amt.e{color:var(--exp)}
+.qa{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.qa-b{display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:16px;border-radius:14px;background:var(--card2);border:1px solid var(--line);font-weight:600;font-size:14px;text-align:start;transition:transform .15s,border-color .15s,background .15s}
+.qa-b:hover{transform:translateY(-2px);border-color:var(--line2)}
+.qa-b .chip-i{width:36px;height:36px;border-radius:11px}
+
+/* forms */
+.field{display:flex;flex-direction:column;gap:7px;min-width:0}
+.field>label,.lbl-t{font-size:13px;font-weight:600;color:var(--fg2)}
+.inp,.sel,.txa{width:100%;height:44px;border-radius:12px;background:var(--bg);border:1px solid var(--line2);padding:0 14px;font-size:14.5px;transition:border-color .15s,box-shadow .15s}
+:root[data-dara="light"] .inp,:root[data-dara="light"] .sel,:root[data-dara="light"] .txa{background:var(--card2)}
+.inp::placeholder,.txa::placeholder{color:var(--fg3)}
+.inp:focus,.sel:focus,.txa:focus{outline:0;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.txa{height:auto;min-height:84px;padding:11px 14px;resize:vertical;line-height:1.7}
+.sel{appearance:none;-webkit-appearance:none;padding-inline-end:36px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 12px center}
+.sel option{background:var(--card);color:var(--fg)}
+.err{color:var(--exp);font-size:12.5px;display:flex;align-items:center;gap:5px}
+.bad{border-color:var(--exp)!important}
+.seg{display:inline-flex;padding:4px;gap:4px;border-radius:13px;background:var(--bg);border:1px solid var(--line)}
+:root[data-dara="light"] .seg{background:var(--card2)}
+.seg button{height:34px;padding:0 16px;border-radius:9px;font-weight:600;font-size:13.5px;color:var(--fg2);transition:background .15s,color .15s;white-space:nowrap}
+.seg button:hover{color:var(--fg)}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+:root[data-dara="light"] .seg button[aria-pressed="true"]{box-shadow:0 1px 3px rgba(15,23,42,.14)}
+.seg button.inc[aria-pressed="true"]{background:var(--inc-soft);color:var(--inc);box-shadow:none}
+.seg button.exp[aria-pressed="true"]{background:var(--exp-soft);color:var(--exp);box-shadow:none}
+.seg.full{display:flex}.seg.full button{flex:1}
+.seg button[disabled]{opacity:.45;cursor:not-allowed}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.row3{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:10px}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:var(--scrim);backdrop-filter:blur(5px);display:grid;place-items:center;z-index:100;padding:16px;animation:fade .15s ease}
+.modal{width:100%;background:var(--card);border:1px solid var(--line2);border-radius:20px;box-shadow:0 40px 80px -24px rgba(0,0,0,.7);max-height:calc(100dvh - 32px);overflow:auto;animation:rise .2s ease}
+.modal-h{display:flex;align-items:center;justify-content:space-between;padding:18px 22px 6px}
+.modal-h h2{font-size:18px;font-weight:700}
+.modal-b{padding:14px 22px 22px;display:flex;flex-direction:column;gap:16px}
+.modal-f{display:flex;gap:10px;margin-top:6px}
+.modal-f .btn{flex:1}
+.modal-f .btn-g{flex:0 0 auto}
+.icon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.icon-grid button{aspect-ratio:1;border-radius:12px;display:grid;place-items:center;background:var(--bg);border:1px solid var(--line);color:var(--fg2);transition:all .15s}
+:root[data-dara="light"] .icon-grid button{background:var(--card2)}
+.icon-grid button:hover{color:var(--fg);border-color:var(--line2)}
+.icon-grid button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--fg)}
+.swatches{display:flex;gap:10px;flex-wrap:wrap}
+.swatches button{width:30px;height:30px;border-radius:50%;border:2px solid transparent;box-shadow:inset 0 0 0 2px var(--card)}
+.swatches button[aria-pressed="true"]{border-color:var(--fg)}
+
+/* transactions page */
+.toolbar{display:grid;grid-template-columns:minmax(220px,1.6fr) repeat(2,minmax(150px,1fr)) auto;gap:12px;align-items:center;margin-bottom:16px}
+.search{position:relative}
+.search svg{position:absolute;top:50%;inset-inline-start:14px;transform:translateY(-50%);color:var(--fg3);pointer-events:none}
+.search .inp{padding-inline-start:42px}
+.sum-strip{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line);font-size:13.5px;color:var(--fg2)}
+.sum-strip b{color:var(--fg);font-weight:600}
+.tbl-w{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:12.5px;font-weight:600;color:var(--fg3);text-align:start;padding:12px 20px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:13px 20px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr{transition:background .15s}
+tbody tr:hover{background:var(--card2)}
+tbody tr:last-child td{border-bottom:0}
+.t-title{display:flex;align-items:center;gap:12px;min-width:200px}
+.t-title b{font-weight:600;display:block;font-size:14.5px}
+.t-title small{display:block;color:var(--fg3);font-size:12.5px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cpill{display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 11px;border-radius:99px;font-size:12.5px;font-weight:500;background:var(--card2);border:1px solid var(--line);white-space:nowrap}
+.cpill i{width:8px;height:8px;border-radius:50%}
+.acts{display:flex;gap:2px;justify-content:flex-end}
+.tx-cards{display:none}
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:56px 20px}
+.empty .chip-i{width:64px;height:64px;border-radius:20px;background:var(--accent-soft);color:var(--accent);margin-bottom:4px}
+.empty h3{font-size:17px}
+.empty p{color:var(--fg2);max-width:340px;font-size:14px}
+
+/* reports */
+.rep-h{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.rep-h p{color:var(--fg2);font-size:13.5px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:20px}
+.kpi{padding:16px 18px}
+.kpi span{display:block;font-size:13px;color:var(--fg2)}
+.kpi b{display:block;font-size:20px;font-weight:700;margin-top:2px}
+.kpi small{font-size:12.5px;color:var(--fg3)}
+.g-rep{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:20px;margin-bottom:20px}
+.ring{display:flex;flex-direction:column;align-items:center;gap:14px;padding-top:4px}
+.ring-s{position:relative;width:170px;height:170px}
+.ring-s svg{transform:rotate(-90deg)}
+.ring-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-c b{font-size:32px;font-weight:800;line-height:1.2}
+.ring-c span{font-size:12px;color:var(--fg3)}
+.ring p{font-size:13.5px;color:var(--fg2);text-align:center;max-width:260px}
+.bk{display:flex;flex-direction:column;gap:14px}
+.bk-r .top{display:flex;align-items:center;gap:10px;margin-bottom:7px;font-size:14px}
+.bk-r .top .n{flex:1;display:flex;align-items:center;gap:9px;font-weight:500}
+.bk-r .top .n i{width:10px;height:10px;border-radius:3px}
+.bk-r .top span{color:var(--fg2);font-size:13px}
+.bar{height:8px;border-radius:99px;background:var(--card2);overflow:hidden}
+.bar>div{height:100%;border-radius:99px;transition:width .5s ease}
+
+/* categories */
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.cat{padding:18px;text-align:start;display:flex;flex-direction:column;gap:16px;transition:transform .2s,border-color .2s;width:100%}
+.cat:hover{transform:translateY(-2px);border-color:var(--line2)}
+.cat-t{display:flex;align-items:center;gap:12px}
+.cat-t b{font-weight:600;font-size:15px;display:block}
+.cat-t small{font-size:12px;color:var(--fg3)}
+.cat-s{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.cat-s span{display:block;font-size:12px;color:var(--fg3)}
+.cat-s b{font-size:15px;font-weight:700}
+.cat-add{border:1.5px dashed var(--line2);background:transparent;box-shadow:none;align-items:center;justify-content:center;color:var(--fg2);min-height:150px;gap:10px;font-weight:600}
+.cat-add:hover{color:var(--fg);border-color:var(--accent)}
+
+/* settings */
+.set{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+.set-c{display:flex;flex-direction:column;gap:20px}
+.who{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+.who .avatar{width:64px;height:64px;font-size:26px}
+.form-g{display:flex;flex-direction:column;gap:16px}
+.theme-o{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.theme-o button{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 8px;border-radius:14px;border:1px solid var(--line);background:var(--card2);font-size:13.5px;font-weight:500;color:var(--fg2);transition:all .15s}
+.theme-o button:hover{border-color:var(--line2);color:var(--fg)}
+.theme-o button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--fg)}
+.nrow{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--line)}
+.nrow:last-child{border:0;padding-bottom:0}
+.nrow:first-child{padding-top:0}
+.nrow b{display:block;font-weight:600;font-size:14.5px}
+.nrow small{color:var(--fg3);font-size:12.5px}
+.sw{flex:none;position:relative;width:46px;height:26px;border-radius:99px;background:var(--line2);transition:background .2s}
+.sw::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35);transition:transform .2s}
+.sw[aria-checked="true"]{background:var(--accent)}
+.sw[aria-checked="true"]::after{transform:translateX(-20px)}
+
+/* toast + bottom nav */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);z-index:200;display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:14px;background:var(--card);border:1px solid var(--line2);box-shadow:0 20px 40px -16px rgba(0,0,0,.6);font-weight:500;font-size:14px;animation:rise .2s ease;max-width:calc(100vw - 32px)}
+.toast svg{color:var(--inc);flex:none}
+.bnav{display:none}
+.nav-scrim{display:none}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.toast{animation-name:toastin}
+@keyframes toastin{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+
+/* tablet: collapsed rail */
+@media (max-width:1180px){
+  .side-wrap{width:78px}
+  .sidebar{padding-inline:12px}
+  .sidebar .lbl{display:none}
+  .sidebar .nav-i{justify-content:center;padding:0}
+  .sidebar .brand{flex-direction:column;gap:10px;padding:0}
+  .sidebar .profile{padding:8px;justify-content:center}
+  .rail-toggle{display:grid;margin:0}
+  .sidebar.open{position:fixed;inset-block:0;inset-inline-start:0;right:0;left:auto;width:264px;z-index:70;box-shadow:-24px 0 60px -20px rgba(0,0,0,.6)}
+  .sidebar.open .lbl{display:inline}
+  .sidebar.open .brand{flex-direction:row;padding:0 8px}
+  .sidebar.open .nav-i{justify-content:flex-start;padding:0 14px}
+  .sidebar.open .profile{justify-content:flex-start;padding:12px}
+  .sidebar.open .rail-toggle{margin-inline-start:auto}
+  .nav-scrim.on{display:block;position:fixed;inset:0;background:var(--scrim);z-index:60}
+  .stats,.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g2,.g3,.g-rep{grid-template-columns:minmax(0,1fr)}
+  .main{padding-inline:24px}
+  .set{grid-template-columns:minmax(0,1fr)}
+  .toolbar{grid-template-columns:1fr 1fr 1fr}
+  .toolbar .search{grid-column:1/-1}
+  .toolbar .seg{grid-column:1/-1}
+}
+/* mobile */
+@media (max-width:719px){
+  .side-wrap{display:none}
+  .main{padding:18px 16px 112px}
+  .head{margin-bottom:18px}
+  .head h1{font-size:19px}
+  .head p{font-size:12.5px}
+  .datepill{display:none}
+  .btn-p.hd{width:42px;padding:0}
+  .btn-p.hd .t{display:none}
+  .stats,.kpis{gap:12px}
+  .stat{padding:14px}
+  .stat-v{font-size:19px}
+  .stat-v small{display:block;margin:0;font-size:12px}
+  .stat-top{margin-bottom:10px}
+  .chip-i{width:34px;height:34px;border-radius:10px}
+  .trend{font-size:11.5px;padding:0 7px;height:24px}
+  .stat-f .sub{display:none}
+  .chart{height:240px}
+  .chart.sm{height:210px}
+  .pad{padding:16px}
+  .tbl-w{display:none}
+  .tx-cards{display:flex;flex-direction:column;padding:6px 10px 10px}
+  .tx-cards .tx{padding:12px 6px}
+  .toolbar{grid-template-columns:1fr 1fr}
+  .row2{grid-template-columns:1fr}
+  .qa{gap:10px}
+  .qa-b{padding:14px}
+  .cat-grid{grid-template-columns:1fr 1fr;gap:12px}
+  .cat{padding:14px;gap:12px}
+  .rep-h{flex-direction:column;align-items:stretch}
+  .rep-h .seg{width:100%}.rep-h .seg button{flex:1;padding:0 8px}
+  .scrim{align-items:end;padding:0}
+  .modal{border-radius:22px 22px 0 0;max-height:92dvh;border-bottom:0}
+  .bnav{display:flex;position:fixed;bottom:0;inset-inline:0;z-index:50;background:var(--side);border-top:1px solid var(--line);padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));justify-content:space-around;gap:2px}
+  .bnav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;min-height:52px;justify-content:center;border-radius:12px;color:var(--fg3);font-size:11px;font-weight:500}
+  .bnav button[aria-current="page"]{color:var(--fg);background:var(--accent-soft)}
+  .bnav button[aria-current="page"] svg{color:var(--accent)}
+  .toast{bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+}
+@media (max-width:400px){.cat-grid{grid-template-columns:1fr}.stat-v{font-size:17px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+.access{min-height:100dvh;display:grid;place-items:center;padding:20px}
+.access .card{width:min(100%,420px);display:grid;gap:18px}
+.access .brand{padding:0}.access h1{font-size:24px}
+.access .btn{justify-content:center}
+button:disabled{opacity:.6;cursor:not-allowed}
+.account-error{color:var(--exp);margin:0 0 16px}
+</style>
+
+</head><body>
+<div id="root"></div>
+<noscript>برای استفاده از دارا، جاوااسکریپت مرورگر را فعال کن.</noscript>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.8.1/prop-types.min.js"></script>
+<script src="https://unpkg.com/react-is@18.3.1/umd/react-is.production.min.js"></script>
+<script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
+<script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.89.0/dist/umd/supabase.js"></script>
+<script>
+(function(){
+const {useState,useMemo,useEffect,useRef,createContext,useContext}=React;
+const html=htm.bind(React.createElement);
+const {ResponsiveContainer,AreaChart,Area,BarChart,Bar,LineChart,Line,XAxis,YAxis,CartesianGrid,Tooltip,PieChart,Pie,Cell}=Recharts;
+
+document.documentElement.lang='fa';
+document.documentElement.dir='rtl';
+
+/* ---------- numbers, dates ---------- */
+const FA='۰۱۲۳۴۵۶۷۸۹';
+const toFa=s=>String(s).replace(/\d/g,d=>FA[d]);
+const toEn=s=>String(s).replace(/[۰-۹]/g,d=>FA.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+const group=n=>String(Math.round(Math.abs(n))).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+const fmt=n=>toFa(group(n));
+const mil=n=>toFa(String(Math.round(n*10)/10).replace('.','٫'));
+const pad=n=>String(n).padStart(2,'0');
+const isoOf=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const TODAY=isoOf(new Date());
+const addDays=(iso,n)=>{const [y,m,d]=iso.split('-').map(Number);return new Date(Date.UTC(y,m-1,d+n,12)).toISOString().slice(0,10)};
+const MONTHS=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+const fmtJ=new Intl.DateTimeFormat('en-u-ca-persian-nu-latn',{year:'numeric',month:'numeric',day:'numeric',timeZone:'UTC'});
+const jcache=new Map();
+function jParts(iso){
+  if(jcache.has(iso))return jcache.get(iso);
+  const [y,m,d]=iso.split('-').map(Number);
+  const p=fmtJ.formatToParts(new Date(Date.UTC(y,m-1,d,12)));
+  const g=t=>{const x=p.find(q=>q.type===t||(t==='year'&&q.type==='relatedYear'));return x?parseInt(x.value,10):0};
+  const r={y:g('year'),m:g('month'),d:g('day')};
+  jcache.set(iso,r);return r;
+}
+function jToISO(jy,jm,jd){
+  const off=jm<=6?(jm-1)*31:186+(jm-7)*30;
+  const base=Date.UTC(jy+621,2,21,12)+(off+jd-1)*864e5;
+  for(const k of [0,-1,1,-2,2,-3,3]){
+    const iso=new Date(base+k*864e5).toISOString().slice(0,10);
+    const p=jParts(iso);
+    if(p.y===jy&&p.m===jm&&p.d===jd)return iso;
+  }
+  return null;
+}
+const WEEK=['یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه','شنبه'];
+const atNoon=iso=>{const [y,m,d]=iso.split('-').map(Number);return new Date(Date.UTC(y,m-1,d,12))};
+const dayMonth=iso=>{const p=jParts(iso);return toFa(p.d)+' '+MONTHS[p.m-1]};
+const showDate=iso=>{const a=jParts(iso),b=jParts(TODAY);return dayMonth(iso)+(a.y===b.y?'':' '+toFa(a.y))};
+const longDate=iso=>WEEK[atNoon(iso).getUTCDay()]+'، '+dayMonth(iso)+' '+toFa(jParts(iso).y);
+const NOWJ=jParts(TODAY);
+const CUR_KEY=NOWJ.y*100+NOWJ.m;
+const mkey=iso=>{const p=jParts(iso);return p.y*100+p.m};
+function monthsBack(n){
+  const out=[];
+  for(let i=n-1;i>=0;i--){let m=NOWJ.m-i,y=NOWJ.y;while(m<1){m+=12;y--}out.push({y,m,label:MONTHS[m-1]})}
+  return out;
+}
+
+/* ---------- icons (Lucide paths) ---------- */
+const P={
+ dash:'<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
+ swap:'<path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/>',
+ pie:'<path d="M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.998.398-.998.95v8a1 1 0 0 0 1 1z"/><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>',
+ grid:'<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>',
+ sliders:'<line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/>',
+ bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+ plus:'<path d="M5 12h14"/><path d="M12 5v14"/>',
+ search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+ wallet:'<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+ trending:'<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+ trenddown:'<polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/>',
+ target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+ utensils:'<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
+ car:'<path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/>',
+ bag:'<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+ receipt:'<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/>',
+ gamepad:'<line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/>',
+ ellipsis:'<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+ banknote:'<rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>',
+ laptop:'<path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/>',
+ pencil:'<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>',
+ trash:'<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+ x:'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+ chevl:'<path d="m15 18-6-6 6-6"/>',
+ menu:'<line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>',
+ cal:'<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
+ check:'<path d="M20 6 9 17l-5-5"/>',
+ up:'<path d="M7 17 17 7"/><path d="M7 7h10v10"/>',
+ down:'<path d="M17 7 7 17"/><path d="M17 17H7V7"/>',
+ home:'<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+ heart:'<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+ grad:'<path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>',
+ plane:'<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
+ coffee:'<path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/>',
+ gift:'<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>',
+ brief:'<path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+ moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+ monitor:'<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>',
+ alert:'<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>',
+ inbox:'<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>'
+};
+const Icon=({n,size=20,sw=1.8})=>html`<svg width=${size} height=${size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth=${sw} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" dangerouslySetInnerHTML=${{__html:P[n]||''}}></svg>`;
+const PICK_ICONS=['utensils','car','bag','receipt','gamepad','home','heart','grad','plane','coffee','gift','brief'];
+const PICK_COLORS=['#8B5CF6','#17A589','#C98410','#2A9DDB','#D9588E','#F87171','#10B981','#7C8CA8'];
+
+/* ---------- mock data ---------- */
+const CATS0=[
+ {id:'food',name:'خوراک و رستوران',type:'expense',icon:'utensils',color:'#8B5CF6'},
+ {id:'transport',name:'حمل‌ونقل',type:'expense',icon:'car',color:'#17A589'},
+ {id:'shopping',name:'خرید',type:'expense',icon:'bag',color:'#C98410'},
+ {id:'bills',name:'قبوض',type:'expense',icon:'receipt',color:'#2A9DDB'},
+ {id:'fun',name:'تفریح',type:'expense',icon:'gamepad',color:'#D9588E'},
+ {id:'other',name:'سایر',type:'expense',icon:'ellipsis',color:'#7C8CA8'},
+ {id:'salary',name:'حقوق',type:'income',icon:'banknote',color:'#10B981'},
+ {id:'freelance',name:'پروژه و فریلنس',type:'income',icon:'laptop',color:'#34D399'},
+ {id:'invest',name:'سود و سرمایه‌گذاری',type:'income',icon:'trending',color:'#6EE7B7'}
+];
+const CC={
+ dark:{grid:'rgba(255,255,255,.07)',axis:'#8A98B3',inc:'#10B981',exp:'#F87171',acc:'#8B5CF6',surf:'#151F33'},
+ light:{grid:'rgba(15,23,42,.08)',axis:'#667189',inc:'#059669',exp:'#E15757',acc:'#7C3AED',surf:'#FFFFFF'}
+};
+const ThemeCtx=createContext('dark');
+
+/* ---------- helpers ---------- */
+function useMedia(q){
+  const [m,setM]=useState(()=>window.matchMedia(q).matches);
+  useEffect(()=>{const mq=window.matchMedia(q);const f=()=>setM(mq.matches);mq.addEventListener('change',f);f();return()=>mq.removeEventListener('change',f)},[q]);
+  return m;
+}
+const sums=list=>{
+  let inc=0,exp=0,net=0;
+  for(const t of list){
+    net+=t.type==='income'?t.amount:-t.amount;
+    if(mkey(t.date)===CUR_KEY){if(t.type==='income')inc+=t.amount;else exp+=t.amount}
+  }
+  return {inc,exp,net};
+};
+const sortTx=l=>[...l].sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:String(b.id).localeCompare(String(a.id)));
+
+/* ---------- small components ---------- */
+function CatChip({cat,size=40,r=12}){
+  const c=cat||{icon:'ellipsis',color:'#7C8CA8'};
+  return html`<span className="chip-i" style=${{width:size,height:size,borderRadius:r,background:c.color+'26',color:c.color}}><${Icon} n=${c.icon} size=${Math.round(size*.5)}/></span>`;
+}
+function Amount({t,showUnit=true}){
+  const inc=t.type==='income';
+  return html`<span className=${'amt '+(inc?'i':'e')}><bdi>${inc?'+':'−'}${fmt(t.amount)}</bdi>${showUnit&&html`<small>تومان</small>`}</span>`;
+}
+function Modal({title,onClose,children,width=520}){
+  useEffect(()=>{
+    const k=e=>{if(e.key==='Escape')onClose()};
+    document.addEventListener('keydown',k);
+    const prev=document.body.style.overflow;document.body.style.overflow='hidden';
+    return()=>{document.removeEventListener('keydown',k);document.body.style.overflow=prev};
+  },[]);
+  return html`<div className="scrim" onMouseDown=${e=>{if(e.target===e.currentTarget)onClose()}}>
+    <div className="modal" role="dialog" aria-modal="true" aria-label=${title} style=${{maxWidth:width}}>
+      <div className="modal-h"><h2>${title}</h2><button className="icon-btn flat" onClick=${onClose} aria-label="بستن"><${Icon} n="x"/></button></div>
+      ${children}
+    </div>
+  </div>`;
+}
+const Err=({m})=>m?html`<span className="err" role="alert"><${Icon} n="alert" size=${14}/>${m}</span>`:null;
+function Switch({on,onChange,label}){
+  return html`<button className="sw" role="switch" aria-checked=${on} aria-label=${label} onClick=${()=>onChange(!on)}></button>`;
+}
+
+/* ---------- transaction dialog ---------- */
+function TxModal({busy,error,cats,initial,preset,onSave,onClose}){
+  const jp=initial?jParts(initial.date):NOWJ;
+  const [v,setV]=useState(initial?{title:initial.title,amount:String(initial.amount),type:initial.type,cat:initial.cat,jy:jp.y,jm:jp.m,jd:jp.d,desc:initial.desc||''}:{title:'',amount:'',type:preset||'expense',cat:'',jy:jp.y,jm:jp.m,jd:jp.d,desc:''});
+  const [tried,setTried]=useState(false);
+  const set=(k,x)=>setV(s=>({...s,[k]:x}));
+  const check=s=>{
+    const e={};
+    if(!s.title.trim())e.title='عنوان تراکنش را وارد کن';
+    else if(s.title.trim().length>200)e.title='عنوان باید حداکثر ۲۰۰ حرف باشد';
+    const a=Number(s.amount);
+    if(!s.amount)e.amount='مبلغ را وارد کن';
+    else if(!Number.isSafeInteger(a)||a<=0)e.amount='مبلغ باید عدد صحیح مثبت و در محدوده مجاز باشد';
+    if(!s.cat)e.cat='یک دسته‌بندی انتخاب کن';
+    const iso=jToISO(+s.jy,+s.jm,+s.jd);
+    if(!iso)e.date='این تاریخ در تقویم وجود ندارد';
+    else if(iso>TODAY)e.date='تاریخ نمی‌تواند در آینده باشد';
+    if(s.desc.length>200)e.desc='توضیحات حداکثر ۲۰۰ کاراکتر می‌تواند باشد';
+    return {e,iso};
+  };
+  const {e,iso}=check(v);
+  const show=k=>tried?e[k]:null;
+  const opts=cats.filter(c=>c.type===v.type);
+  const submit=ev=>{
+    ev.preventDefault();setTried(true);
+    if(Object.keys(e).length)return;
+    onSave({id:initial?.id,title:v.title.trim(),amount:Number(v.amount),type:v.type,cat:v.cat,date:iso,desc:v.desc.trim()});
+  };
+  const years=[NOWJ.y-2,NOWJ.y-1,NOWJ.y];
+  return html`<${Modal} title=${initial?'ویرایش تراکنش':'ثبت تراکنش جدید'} onClose=${onClose}>
+    <form className="modal-b" onSubmit=${submit} noValidate>${error&&html`<p className="account-error" role="alert">${error}</p>`}
+      <div className="field">
+        <span className="lbl-t">نوع تراکنش</span>
+        <div className="seg full" role="group" aria-label="نوع تراکنش">
+          <button type="button" className="inc" aria-pressed=${v.type==='income'} onClick=${()=>setV(s=>({...s,type:'income',cat:''}))}>درآمد</button>
+          <button type="button" className="exp" aria-pressed=${v.type==='expense'} onClick=${()=>setV(s=>({...s,type:'expense',cat:''}))}>هزینه</button>
+        </div>
+      </div>
+      <div className="field">
+        <label htmlFor="f-title">عنوان تراکنش</label>
+        <input id="f-title" className=${'inp'+(show('title')?' bad':'')} value=${v.title} onChange=${x=>set('title',x.target.value)} placeholder="مثلاً: خرید سوپرمارکت" maxLength="60" autoFocus/>
+        <${Err} m=${show('title')}/>
+      </div>
+      <div className="row2">
+        <div className="field">
+          <label htmlFor="f-amt">مبلغ (تومان)</label>
+          <input id="f-amt" className=${'inp num'+(show('amount')?' bad':'')} inputMode="numeric" value=${v.amount?fmt(+v.amount):''} onChange=${x=>set('amount',toEn(x.target.value).replace(/[^\d]/g,'').slice(0,12))} placeholder="۰"/>
+          <${Err} m=${show('amount')}/>
+        </div>
+        <div className="field">
+          <label htmlFor="f-cat">دسته‌بندی</label>
+          <select id="f-cat" className=${'sel'+(show('cat')?' bad':'')} value=${v.cat} onChange=${x=>set('cat',x.target.value)}>
+            <option value="">انتخاب کن…</option>
+            ${opts.map(c=>html`<option key=${c.id} value=${c.id}>${c.name}</option>`)}
+          </select>
+          <${Err} m=${show('cat')}/>
+        </div>
+      </div>
+      <div className="field">
+        <span className="lbl-t">تاریخ</span>
+        <div className="row3">
+          <select aria-label="روز" className=${'sel'+(show('date')?' bad':'')} value=${v.jd} onChange=${x=>set('jd',+x.target.value)}>${Array.from({length:31},(_,i)=>html`<option key=${i} value=${i+1}>${toFa(i+1)}</option>`)}</select>
+          <select aria-label="ماه" className=${'sel'+(show('date')?' bad':'')} value=${v.jm} onChange=${x=>set('jm',+x.target.value)}>${MONTHS.map((m,i)=>html`<option key=${i} value=${i+1}>${m}</option>`)}</select>
+          <select aria-label="سال" className=${'sel'+(show('date')?' bad':'')} value=${v.jy} onChange=${x=>set('jy',+x.target.value)}>${years.map(y=>html`<option key=${y} value=${y}>${toFa(y)}</option>`)}</select>
+        </div>
+        <${Err} m=${show('date')}/>
+      </div>
+      <div className="field">
+        <label htmlFor="f-desc">توضیحات <span style=${{color:'var(--fg3)',fontWeight:400}}>(اختیاری)</span></label>
+        <textarea id="f-desc" className=${'txa'+(show('desc')?' bad':'')} value=${v.desc} onChange=${x=>set('desc',x.target.value)} placeholder="یادداشتی برای خودت بنویس"></textarea>
+        <${Err} m=${show('desc')}/>
+      </div>
+      <div className="modal-f">
+        <button type="submit" disabled=${busy} className="btn btn-p">${initial?'ذخیرهٔ تغییرات':'ذخیرهٔ تراکنش'}</button>
+        <button type="button" className="btn btn-g" onClick=${onClose}>انصراف</button>
+      </div>
+    </form>
+  <//>`;
+}
+function CatModal({busy,error,cats,onSave,onClose}){
+  const [v,setV]=useState({name:'',type:'expense',icon:'heart',color:'#8B5CF6'});
+  const [tried,setTried]=useState(false);
+  let e=null;
+  if(!v.name.trim())e='نام دسته‌بندی را وارد کن';
+  else if(cats.some(c=>c.name===v.name.trim()&&c.type===v.type))e='این دسته‌بندی از قبل وجود دارد';
+  const submit=ev=>{ev.preventDefault();setTried(true);if(e)return;onSave({name:v.name.trim(),type:v.type,icon:v.icon,color:v.color})};
+  return html`<${Modal} title="دسته‌بندی جدید" onClose=${onClose} width=${480}>
+    <form className="modal-b" onSubmit=${submit} noValidate>${error&&html`<p className="account-error" role="alert">${error}</p>`}
+      <div className="field">
+        <label htmlFor="c-name">نام دسته‌بندی</label>
+        <input id="c-name" className=${'inp'+(tried&&e?' bad':'')} value=${v.name} onChange=${x=>setV(s=>({...s,name:x.target.value}))} placeholder="مثلاً: سلامت" maxLength="30" autoFocus/>
+        <${Err} m=${tried?e:null}/>
+      </div>
+      <div className="field">
+        <span className="lbl-t">نوع</span>
+        <div className="seg full">
+          <button type="button" className="inc" aria-pressed=${v.type==='income'} onClick=${()=>setV(s=>({...s,type:'income'}))}>درآمد</button>
+          <button type="button" className="exp" aria-pressed=${v.type==='expense'} onClick=${()=>setV(s=>({...s,type:'expense'}))}>هزینه</button>
+        </div>
+      </div>
+      <div className="field">
+        <span className="lbl-t">آیکون</span>
+        <div className="icon-grid">${PICK_ICONS.map(i=>html`<button type="button" key=${i} aria-label=${'آیکون '+i} aria-pressed=${v.icon===i} onClick=${()=>setV(s=>({...s,icon:i}))}><${Icon} n=${i} size=${20}/></button>`)}</div>
+      </div>
+      <div className="field">
+        <span className="lbl-t">رنگ</span>
+        <div className="swatches">${PICK_COLORS.map(c=>html`<button type="button" key=${c} aria-label=${'رنگ '+c} aria-pressed=${v.color===c} style=${{background:c}} onClick=${()=>setV(s=>({...s,color:c}))}></button>`)}</div>
+      </div>
+      <div className="modal-f">
+        <button type="submit" disabled=${busy} className="btn btn-p">افزودن دسته‌بندی</button>
+        <button type="button" className="btn btn-g" onClick=${onClose}>انصراف</button>
+      </div>
+    </form>
+  <//>`;
+}
+function ConfirmDel({busy,error,tx,onYes,onClose}){
+  return html`<${Modal} title="حذف تراکنش" onClose=${onClose} width=${420}>
+    <div className="modal-b">${error&&html`<p className="account-error" role="alert">${error}</p>`}
+      <p style=${{color:'var(--fg2)'}}>تراکنش «<b style=${{color:'var(--fg)'}}>${tx.title}</b>» برای همیشه حذف می‌شود. این کار قابل بازگشت نیست.</p>
+      <div className="modal-f"><button className="btn btn-d" disabled=${busy} onClick=${onYes}>حذف تراکنش</button><button className="btn btn-g" onClick=${onClose}>انصراف</button></div>
+    </div>
+  <//>`;
+}
+
+/* ---------- charts ---------- */
+function FlowTip({active,payload,label}){
+  if(!active||!payload||!payload.length)return null;
+  const inc=payload.find(p=>p.dataKey==='income'),exp=payload.find(p=>p.dataKey==='expense');
+  const iv=inc?inc.value*1e6:0,ev=exp?exp.value*1e6:0;
+  return html`<div className="tip"><div className="tip-t">${label}</div>
+    <div className="tip-r"><span><i style=${{background:'var(--inc)'}}></i>درآمد</span><b className="num">${fmt(iv)}</b></div>
+    <div className="tip-r"><span><i style=${{background:'var(--exp)'}}></i>هزینه</span><b className="num">${fmt(ev)}</b></div>
+    <div className="tip-r tip-s"><span>پس‌انداز</span><b className="num">${fmt(iv-ev)}</b></div>
+  </div>`;
+}
+function SingleTip({active,payload,label,name,unit,mult}){
+  if(!active||!payload||!payload.length)return null;
+  const v=payload[0].value;
+  return html`<div className="tip"><div className="tip-t">${label}</div><div className="tip-r"><span>${name}</span><b className="num">${unit==='%'?toFa(v)+'٪':fmt(v*mult)+' تومان'}</b></div></div>`;
+}
+function CashFlow({data,compact}){
+  const theme=useContext(ThemeCtx),C=CC[theme];
+  const reduce=useMedia('(prefers-reduced-motion: reduce)');
+  const many=data.length>6;
+  return html`<div className=${'chart'+(compact?' sm':'')}>
+    <${ResponsiveContainer} width="100%" height="100%">
+      <${AreaChart} data=${data} margin=${{top:8,right:0,left:0,bottom:0}}>
+        <defs>
+          <linearGradient id="gInc" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor=${C.inc} stopOpacity=${0.28}/><stop offset="100%" stopColor=${C.inc} stopOpacity=${0}/></linearGradient>
+          <linearGradient id="gExp" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor=${C.exp} stopOpacity=${0.22}/><stop offset="100%" stopColor=${C.exp} stopOpacity=${0}/></linearGradient>
+        </defs>
+        <${CartesianGrid} stroke=${C.grid} vertical=${false}/>
+        <${XAxis} dataKey="label" reversed=${true} axisLine=${false} tickLine=${false} interval=${many?1:0} tick=${{fill:C.axis,fontSize:12,fontFamily:'Vazirmatn'}} tickMargin=${10}/>
+        <${YAxis} orientation="right" width=${34} axisLine=${false} tickLine=${false} tickFormatter=${v=>toFa(v)} tick=${{fill:C.axis,fontSize:12,fontFamily:'Vazirmatn'}} domain=${[0,'dataMax + 10']}/>
+        <${Tooltip} content=${html`<${FlowTip}/>`} cursor=${{stroke:C.axis,strokeDasharray:'3 4',strokeOpacity:.6}}/>
+        <${Area} type="monotone" dataKey="income" stroke=${C.inc} strokeWidth=${2.2} fill="url(#gInc)" dot=${false} activeDot=${{r:5,stroke:C.surf,strokeWidth:2,fill:C.inc}} isAnimationActive=${!reduce} animationDuration=${700}/>
+        <${Area} type="monotone" dataKey="expense" stroke=${C.exp} strokeWidth=${2.2} fill="url(#gExp)" dot=${false} activeDot=${{r:5,stroke:C.surf,strokeWidth:2,fill:C.exp}} isAnimationActive=${!reduce} animationDuration=${700}/>
+      <//>
+    <//>
+  </div>`;
+}
+function Donut({totalExp,shares}){
+  const theme=useContext(ThemeCtx),C=CC[theme];
+  const [hov,setHov]=useState(null);
+  const reduce=useMedia('(prefers-reduced-motion: reduce)');
+  const tip=({active,payload})=>{
+    if(!active||!payload||!payload.length)return null;
+    const d=payload[0].payload;
+    return html`<div className="tip" style=${{minWidth:150}}><div className="tip-r"><span><i style=${{background:d.color}}></i>${d.name}</span></div><div className="tip-r"><b className="num">${toFa(Math.round(d.value))}٪</b><span className="num">${fmt(d.amount)}</span></div></div>`;
+  };
+  return html`<div>
+    <div className="donut">
+      <${ResponsiveContainer} width="100%" height="100%">
+        <${PieChart}>
+          <${Tooltip} content=${tip}/>
+          <${Pie} data=${shares} dataKey="value" nameKey="name" innerRadius="68%" outerRadius="96%" paddingAngle=${2} cornerRadius=${5} stroke=${C.surf} strokeWidth=${2} startAngle=${90} endAngle=${-270} isAnimationActive=${!reduce} animationDuration=${700} onMouseEnter=${(_,i)=>setHov(i)} onMouseLeave=${()=>setHov(null)}>
+            ${shares.map((d,i)=>html`<${Cell} key=${d.id} fill=${d.color} fillOpacity=${hov===null||hov===i?1:.35}/>`)}
+          <//>
+        <//>
+      <//>
+      <div className="donut-c"><small>هزینهٔ این ماه</small><b className="num">${mil(totalExp/1e6)}</b><span>میلیون تومان</span></div>
+    </div>
+    <div className="dl">
+      ${shares.map((d,i)=>html`<div key=${d.id} className=${'dl-r'+(hov===i?' on':'')} onMouseEnter=${()=>setHov(i)} onMouseLeave=${()=>setHov(null)}>
+        <i style=${{background:d.color}}></i><span className="n">${d.name}</span><b>${toFa(Math.round(d.value))}٪</b>
+      </div>`)}
+    </div>
+  </div>`;
+}
+function Spark({values,color}){
+  const w=120,h=36,mn=Math.min(...values),mx=Math.max(...values);
+  const pts=values.map((v,i)=>[w-(i/(values.length-1))*w,h-4-((v-mn)/(mx-mn||1))*(h-10)]).reverse();
+  const d=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const last=pts[pts.length-1];
+  return html`<svg width=${w} height=${h} viewBox=${'0 0 '+w+' '+h} aria-hidden="true" style=${{flex:'none'}}>
+    <path d=${d+' L'+last[0]+' '+h+' L'+pts[0][0]+' '+h+' Z'} fill=${color} fillOpacity=${0.14}/>
+    <path d=${d} fill="none" stroke=${color} strokeWidth=${2} strokeLinecap="round" strokeLinejoin="round"/>
+    <circle cx=${last[0]} cy=${last[1]} r=${3.5} fill=${color}/>
+  </svg>`;
+}
+
+/* ---------- dashboard ---------- */
+function Stat({icon,color,label,value,trend,tone,foot,hero,children}){
+  return html`<div className=${'card stat'+(hero?' hero':'')}>
+    <div className="stat-top"><span className="stat-l">${label}</span><span className="chip-i" style=${{background:color+'24',color}}><${Icon} n=${icon} size=${20}/></span></div>
+    <div className="stat-v num">${value}<small>تومان</small></div>
+    <div className="stat-f">
+      ${trend&&html`<span className=${'trend '+tone}><${Icon} n=${tone==='up'?'up':tone==='down'?'trenddown':'target'} size=${14} sw=${2.2}/>${trend}</span>`}
+      ${foot&&html`<span className="sub">${foot}</span>`}
+      ${children}
+    </div>
+  </div>`;
+}
+function TxList({list,cats,onEdit}){
+  return html`<div className="txl">${list.map(t=>{
+    const c=cats.find(x=>x.id===t.cat);
+    return html`<div className="tx" key=${t.id}>
+      <${CatChip} cat=${c}/>
+      <div className="tx-m"><b>${t.title}</b><span>${c?c.name:'—'} · ${showDate(t.date)}</span></div>
+      <${Amount} t=${t}/>
+    </div>`})}</div>`;
+}
+function Dashboard({txns,cats,live,go,onAdd,series6,balances,shares}){
+  const rate=live.inc>0?Math.round((live.inc-live.exp)/live.inc*100):0;
+  const recent=sortTx(txns).slice(0,6);
+  return html`<div>
+    <div className="stats">
+      <${Stat} hero=${true} icon="wallet" color="#8B5CF6" label="موجودی کل" value=${fmt(live.bal)}>
+        <${Spark} values=${balances} color="#8B5CF6"/>
+        <span className="sub">۶ ماه اخیر</span>
+      <//>
+      <${Stat} icon="trending" color="#10B981" label="درآمد این ماه" value=${fmt(live.inc)}/>
+      <${Stat} icon="receipt" color="#F87171" label="هزینه این ماه" value=${fmt(live.exp)}/>
+      <${Stat} icon="target" color="#2A9DDB" label="پس‌انداز این ماه" value=${fmt(live.inc-live.exp)} trend=${'نرخ پس‌انداز '+toFa(rate)+'٪'} tone="neutral"/>
+    </div>
+    <div className="g2">
+      <section className="card pad" aria-label="جریان نقدی">
+        <div className="card-h">
+          <div><h2>جریان نقدی ماهانه</h2><p>مقایسهٔ درآمد و هزینه در ۶ ماه اخیر · میلیون تومان</p></div>
+          <div className="legend-r"><span className="lg"><i style=${{background:'var(--inc)'}}></i>درآمد</span><span className="lg"><i style=${{background:'var(--exp)'}}></i>هزینه</span></div>
+        </div>
+        <${CashFlow} data=${series6}/>
+      </section>
+      <section className="card pad" aria-label="توزیع هزینه‌ها">
+        <div className="card-h"><div><h2>توزیع هزینه‌ها</h2><p>سهم هر دسته از کل هزینه</p></div></div>
+        ${shares.length ? html`<${Donut} totalExp=${live.exp} shares=${shares}/>` : html`<p>هنوز هزینه‌ای در این ماه ثبت نشده است.</p>`}
+      </section>
+    </div>
+    <div className="g3">
+      <section className="card pad" aria-label="تراکنش‌های اخیر">
+        <div className="card-h"><div><h2>تراکنش‌های اخیر</h2></div><button className="link" onClick=${()=>go('transactions')}>مشاهده همه<${Icon} n="chevl" size=${16} sw=${2.2}/></button></div>
+        ${recent.length ? html`<${TxList} list=${recent} cats=${cats}/>` : html`<p>هنوز تراکنشی ثبت نشده است.</p>`}
+      </section>
+      <section className="card pad" aria-label="دسترسی سریع">
+        <div className="card-h"><div><h2>دسترسی سریع</h2></div></div>
+        <div className="qa">
+          <button className="qa-b" onClick=${()=>onAdd('income')}><span className="chip-i" style=${{background:'var(--inc-soft)',color:'var(--inc)'}}><${Icon} n="down" size=${18}/></span>ثبت درآمد</button>
+          <button className="qa-b" onClick=${()=>onAdd('expense')}><span className="chip-i" style=${{background:'var(--exp-soft)',color:'var(--exp)'}}><${Icon} n="up" size=${18}/></span>ثبت هزینه</button>
+          <button className="qa-b" onClick=${()=>go('reports')}><span className="chip-i" style=${{background:'var(--accent-soft)',color:'var(--accent)'}}><${Icon} n="pie" size=${18}/></span>مشاهده گزارش</button>
+          <button className="qa-b" onClick=${()=>go('categories')}><span className="chip-i" style=${{background:'rgba(42,157,219,.16)',color:'#2A9DDB'}}><${Icon} n="grid" size=${18}/></span>مدیریت دسته‌بندی‌ها</button>
+        </div>
+      </section>
+    </div>
+  </div>`;
+}
+
+/* ---------- transactions page ---------- */
+const DATE_OPTS=[['all','همهٔ زمان‌ها'],['month','این ماه'],['7','۷ روز اخیر'],['30','۳۰ روز اخیر'],['90','۹۰ روز اخیر']];
+function TxPage({txns,cats,filters,setFilters,onAdd,onEdit,onDel}){
+  const f=filters;
+  const list=useMemo(()=>{
+    const q=f.q.trim();
+    return sortTx(txns).filter(t=>{
+      if(f.type!=='all'&&t.type!==f.type)return false;
+      if(f.cat!=='all'&&t.cat!==f.cat)return false;
+      if(f.date==='month'&&mkey(t.date)!==CUR_KEY)return false;
+      if(['7','30','90'].includes(f.date)&&t.date<addDays(TODAY,-(+f.date)))return false;
+      if(q){const c=cats.find(x=>x.id===t.cat);const hay=(t.title+' '+t.desc+' '+(c?c.name:'')).toLowerCase();if(!hay.includes(toEn(q).toLowerCase())&&!hay.includes(q.toLowerCase()))return false}
+      return true;
+    });
+  },[txns,cats,f]);
+  const inc=list.filter(t=>t.type==='income').reduce((a,t)=>a+t.amount,0);
+  const exp=list.filter(t=>t.type==='expense').reduce((a,t)=>a+t.amount,0);
+  const dirty=f.q||f.type!=='all'||f.cat!=='all'||f.date!=='all';
+  const reset=()=>setFilters({q:'',type:'all',cat:'all',date:'all'});
+  const up=(k,v)=>setFilters(s=>({...s,[k]:v}));
+  const catPill=t=>{const c=cats.find(x=>x.id===t.cat);return c?html`<span className="cpill"><i style=${{background:c.color}}></i>${c.name}</span>`:'—'};
+  return html`<div>
+    <div className="toolbar">
+      <div className="search"><${Icon} n="search" size=${18}/><input className="inp" aria-label="جستجو در تراکنش‌ها" placeholder="جستجوی عنوان، دسته یا توضیحات…" value=${f.q} onChange=${e=>up('q',e.target.value)}/></div>
+      <select className="sel" aria-label="فیلتر بازهٔ زمانی" value=${f.date} onChange=${e=>up('date',e.target.value)}>${DATE_OPTS.map(o=>html`<option key=${o[0]} value=${o[0]}>${o[1]}</option>`)}</select>
+      <select className="sel" aria-label="فیلتر دسته‌بندی" value=${f.cat} onChange=${e=>up('cat',e.target.value)}><option value="all">همهٔ دسته‌بندی‌ها</option>${cats.map(c=>html`<option key=${c.id} value=${c.id}>${c.name}</option>`)}</select>
+      <div className="seg" role="group" aria-label="نوع تراکنش">
+        ${[['all','همه'],['income','درآمد'],['expense','هزینه']].map(o=>html`<button key=${o[0]} aria-pressed=${f.type===o[0]} onClick=${()=>up('type',o[0])}>${o[1]}</button>`)}
+      </div>
+    </div>
+    <section className="card" aria-label="فهرست تراکنش‌ها">
+      ${list.length>0&&html`<div className="sum-strip">
+        <span><b className="num">${toFa(list.length)}</b> تراکنش</span>
+        <span>درآمد: <b className="num" style=${{color:'var(--inc)'}}>${fmt(inc)}</b> تومان</span>
+        <span>هزینه: <b className="num" style=${{color:'var(--exp)'}}>${fmt(exp)}</b> تومان</span>
+        ${dirty&&html`<button className="link" style=${{marginInlineStart:'auto'}} onClick=${reset}>پاک کردن فیلترها</button>`}
+      </div>`}
+      ${list.length===0?html`<div className="empty">
+        <span className="chip-i"><${Icon} n="inbox" size=${28}/></span>
+        <h3>${dirty?'تراکنشی پیدا نشد':'هنوز تراکنشی ثبت نکرده‌ای'}</h3>
+        <p>${dirty?'فیلترها یا عبارت جستجو را تغییر بده یا همهٔ فیلترها را پاک کن.':'اولین درآمد یا هزینه‌ات را ثبت کن تا وضعیت مالی‌ات اینجا دیده شود.'}</p>
+        <div style=${{display:'flex',gap:10,marginTop:8,flexWrap:'wrap',justifyContent:'center'}}>
+          ${dirty&&html`<button className="btn btn-g" onClick=${reset}>پاک کردن فیلترها</button>`}
+          <button className="btn btn-p" onClick=${()=>onAdd()}><${Icon} n="plus" size=${18} sw=${2.2}/>ثبت تراکنش</button>
+        </div>
+      </div>`:html`
+        <div className="tbl-w"><table>
+          <thead><tr><th>تراکنش</th><th>دسته‌بندی</th><th>تاریخ</th><th style=${{textAlign:'end'}}>مبلغ</th><th><span className="sr">عملیات</span></th></tr></thead>
+          <tbody>${list.map(t=>html`<tr key=${t.id}>
+            <td><div className="t-title"><${CatChip} cat=${cats.find(c=>c.id===t.cat)} size=${38} r=${11}/><div style=${{minWidth:0}}><b>${t.title}</b>${t.desc&&html`<small>${t.desc}</small>`}</div></div></td>
+            <td>${catPill(t)}</td>
+            <td style=${{color:'var(--fg2)',whiteSpace:'nowrap'}}>${showDate(t.date)}</td>
+            <td><${Amount} t=${t}/></td>
+            <td><div className="acts"><button className="icon-btn flat" aria-label=${'ویرایش '+t.title} onClick=${()=>onEdit(t)}><${Icon} n="pencil" size=${17}/></button><button className="icon-btn flat danger" aria-label=${'حذف '+t.title} onClick=${()=>onDel(t)}><${Icon} n="trash" size=${17}/></button></div></td>
+          </tr>`)}</tbody>
+        </table></div>
+        <div className="tx-cards">${list.map(t=>html`<div className="tx" key=${t.id} style=${{alignItems:'flex-start'}}>
+          <${CatChip} cat=${cats.find(c=>c.id===t.cat)} size=${38} r=${11}/>
+          <div className="tx-m"><b>${t.title}</b><span>${showDate(t.date)}</span>
+            <div style=${{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:6,gap:8}}>${catPill(t)}<div className="acts"><button className="icon-btn flat" aria-label=${'ویرایش '+t.title} onClick=${()=>onEdit(t)}><${Icon} n="pencil" size=${17}/></button><button className="icon-btn flat danger" aria-label=${'حذف '+t.title} onClick=${()=>onDel(t)}><${Icon} n="trash" size=${17}/></button></div></div>
+          </div>
+          <${Amount} t=${t} showUnit=${false}/>
+        </div>`)}</div>
+      `}
+    </section>
+  </div>`;
+}
+
+/* ---------- reports ---------- */
+function Reports({txns,cats}){
+  const theme=useContext(ThemeCtx),C=CC[theme];
+  const [n,setN]=useState(6);
+  const reduce=useMedia('(prefers-reduced-motion: reduce)');
+  const ms=monthsBack(n);
+  const data=monthly(txns,n).map(row=>({...row,net:row.income-row.expense}));
+  const sI=data.reduce((sum,row)=>sum+row.income,0);
+  const sE=data.reduce((sum,row)=>sum+row.expense,0);
+  const net=sI-sE;
+  const rate=sI>0?Math.round(net/sI*100):0;
+  const shares=expenseShares(txns,cats,new Set(ms.map(({y,m})=>y*100+m)));
+  const label=ms[0].label+' '+toFa(ms[0].y)+' تا '+ms[n-1].label+' '+toFa(ms[n-1].y);
+  const R=70,CIR=2*Math.PI*R;
+  const ax={fill:C.axis,fontSize:12,fontFamily:'Vazirmatn'};
+  const many=n>6;
+  return html`<div>
+    <div className="rep-h">
+      <p>بازهٔ گزارش: <b style=${{color:'var(--fg)'}}>${label}</b></p>
+      <div className="seg" role="group" aria-label="بازهٔ زمانی">${[[3,'۳ ماه'],[6,'۶ ماه'],[12,'۱۲ ماه']].map(o=>html`<button key=${o[0]} aria-pressed=${n===o[0]} onClick=${()=>setN(o[0])}>${o[1]}</button>`)}</div>
+    </div>
+    <div className="kpis">
+      <div className="card kpi"><span>کل درآمد</span><b className="num" style=${{color:'var(--inc)'}}>${mil(sI)} <small>میلیون</small></b></div>
+      <div className="card kpi"><span>کل هزینه</span><b className="num" style=${{color:'var(--exp)'}}>${mil(sE)} <small>میلیون</small></b></div>
+      <div className="card kpi"><span>پس‌انداز خالص</span><b className="num">${mil(net)} <small>میلیون</small></b></div>
+      <div className="card kpi"><span>میانگین پس‌انداز ماهانه</span><b className="num">${mil(net/n)} <small>میلیون</small></b></div>
+    </div>
+    <div className="g-rep">
+      <section className="card pad" aria-label="مقایسهٔ درآمد و هزینه">
+        <div className="card-h"><div><h2>درآمد و هزینهٔ ماهانه</h2><p>میلیون تومان</p></div><div className="legend-r"><span className="lg"><i style=${{background:'var(--inc)'}}></i>درآمد</span><span className="lg"><i style=${{background:'var(--exp)'}}></i>هزینه</span></div></div>
+        <div className="chart">
+          <${ResponsiveContainer} width="100%" height="100%">
+            <${BarChart} data=${data} margin=${{top:8,right:0,left:0,bottom:0}} barGap=${3} barCategoryGap=${many?'22%':'32%'}>
+              <${CartesianGrid} stroke=${C.grid} vertical=${false}/>
+              <${XAxis} dataKey="label" reversed=${true} axisLine=${false} tickLine=${false} interval=${many?1:0} tick=${ax} tickMargin=${10}/>
+              <${YAxis} orientation="right" width=${34} axisLine=${false} tickLine=${false} tickFormatter=${v=>toFa(v)} tick=${ax}/>
+              <${Tooltip} content=${html`<${FlowTip}/>`} cursor=${{fill:C.grid}}/>
+              <${Bar} dataKey="income" fill=${C.inc} radius=${[4,4,0,0]} maxBarSize=${16} isAnimationActive=${!reduce} animationDuration=${600}/>
+              <${Bar} dataKey="expense" fill=${C.exp} radius=${[4,4,0,0]} maxBarSize=${16} isAnimationActive=${!reduce} animationDuration=${600}/>
+            <//>
+          <//>
+        </div>
+      </section>
+      <section className="card pad" aria-label="نرخ پس‌انداز">
+        <div className="card-h"><div><h2>نرخ پس‌انداز</h2><p>سهم پس‌انداز از کل درآمد</p></div></div>
+        <div className="ring">
+          <div className="ring-s">
+            <svg width="170" height="170" viewBox="0 0 170 170" aria-hidden="true">
+              <circle cx="85" cy="85" r=${R} fill="none" stroke="var(--card2)" strokeWidth="14"/>
+              <circle cx="85" cy="85" r=${R} fill="none" stroke=${C.acc} strokeWidth="14" strokeLinecap="round" strokeDasharray=${CIR} strokeDashoffset=${CIR*(1-Math.max(0,Math.min(100,rate))/100)} style=${{transition:'stroke-dashoffset .6s ease'}}/>
+            </svg>
+            <div className="ring-c"><b className="num">${toFa(rate)}٪</b><span>از درآمد</span></div>
+          </div>
+          <p>${sI<=0?"در این بازه درآمدی ثبت نشده است.":net<0?"هزینه‌ها در این بازه بیشتر از درآمد بوده‌اند.":"نرخ پس‌انداز از تقسیم پس‌انداز خالص بر درآمد به دست می‌آید."}</p>
+        </div>
+      </section>
+    </div>
+    <div className="g-rep">
+      <section className="card pad" aria-label="روند ماهانه">
+        <div className="card-h"><div><h2>روند پس‌انداز ماهانه</h2><p>میلیون تومان</p></div></div>
+        <div className="chart sm">
+          <${ResponsiveContainer} width="100%" height="100%">
+            <${LineChart} data=${data} margin=${{top:10,right:8,left:8,bottom:0}}>
+              <${CartesianGrid} stroke=${C.grid} vertical=${false}/>
+              <${XAxis} dataKey="label" reversed=${true} axisLine=${false} tickLine=${false} interval=${many?1:0} tick=${ax} tickMargin=${10}/>
+              <${YAxis} orientation="right" width=${34} axisLine=${false} tickLine=${false} tickFormatter=${v=>toFa(v)} tick=${ax} domain=${['dataMin - 4','dataMax + 4']}/>
+              <${Tooltip} content=${html`<${SingleTip} name="پس‌انداز" mult=${1e6}/>`} cursor=${{stroke:C.axis,strokeDasharray:'3 4',strokeOpacity:.6}}/>
+              <${Line} type="monotone" dataKey="net" stroke=${C.acc} strokeWidth=${2.4} dot=${{r:3.5,fill:C.acc,stroke:C.surf,strokeWidth:2}} activeDot=${{r:6,fill:C.acc,stroke:C.surf,strokeWidth:2}} isAnimationActive=${!reduce} animationDuration=${700}/>
+            <//>
+          <//>
+        </div>
+      </section>
+      <section className="card pad" aria-label="تفکیک هزینه‌ها">
+        <div className="card-h"><div><h2>تفکیک هزینه‌ها</h2><p>بر اساس دسته‌بندی</p></div></div>
+        <div className="bk">${!shares.length && html`<p>هزینه‌ای در این بازه ثبت نشده است.</p>`}${shares.map(d=>html`<div className="bk-r" key=${d.id}>
+          <div className="top"><span className="n"><i style=${{background:d.color}}></i>${d.name}</span><span className="num">${mil(d.amount/1e6)} م</span><b className="num">${toFa(Math.round(d.value))}٪</b></div>
+          <div className="bar"><div style=${{width:d.value+'%',background:d.color}}></div></div>
+        </div>`)}</div>
+      </section>
+    </div>
+  </div>`;
+}
+
+/* ---------- categories ---------- */
+function Categories({txns,cats,onAddCat,openCat}){
+  const stat=id=>{const l=txns.filter(t=>t.cat===id);return{n:l.length,s:l.reduce((a,t)=>a+t.amount,0)}};
+  return html`<div>
+    <div className="rep-h">
+      <p>${toFa(cats.length)} دسته‌بندی · برای دیدن تراکنش‌های هر دسته روی آن بزن</p>
+      <button className="btn btn-p" onClick=${onAddCat}><${Icon} n="plus" size=${18} sw=${2.2}/>دسته‌بندی جدید</button>
+    </div>
+    <div className="cat-grid">
+      ${cats.map(c=>{const s=stat(c.id);return html`<button key=${c.id} className="card cat" onClick=${()=>openCat(c.id)}>
+        <div className="cat-t"><${CatChip} cat=${c} size=${44} r=${13}/><div><b>${c.name}</b><small>${c.type==='income'?'درآمد':'هزینه'}</small></div></div>
+        <div className="cat-s"><div><span>تراکنش‌ها</span><b className="num">${toFa(s.n)}</b></div><div style=${{textAlign:'end'}}><span>مجموع (تومان)</span><b className="num" style=${{color:c.type==='income'?'var(--inc)':'var(--fg)'}}>${fmt(s.s)}</b></div></div>
+      </button>`})}
+      <button className="card cat cat-add" onClick=${onAddCat}><${Icon} n="plus" size=${24}/>افزودن دسته‌بندی</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- settings ---------- */
+function Settings({profile,saveProfile,prefs,setPrefs,signOut,busy}){
+  const [name,setName]=useState(profile.name);
+  const email=profile.email;
+  const [tried,setTried]=useState(false);
+  const en=!name.trim()?'نام و نام خانوادگی را وارد کن':null;
+  const save=e=>{e.preventDefault();setTried(true);if(!en)saveProfile(name.trim())};
+  return html`<div className="set">
+    <div className="set-c">
+      <form className="card pad" onSubmit=${save} noValidate>
+        <div className="card-h"><div><h2>اطلاعات پروفایل</h2></div></div>
+        <div className="who"><div className="avatar">${Array.from(name.trim()||'؟')[0]}</div><div><b>${name.trim()||'—'}</b><div style=${{color:'var(--fg3)',fontSize:13}} dir="ltr">${email}</div></div></div>
+        <div className="form-g">
+          <div className="field"><label htmlFor="s-name">نام و نام خانوادگی</label><input id="s-name" className=${'inp'+(tried&&en?' bad':'')} value=${name} maxLength="100" onChange=${e=>setName(e.target.value)}/><${Err} m=${tried?en:null}/></div>
+          <div className="field"><label htmlFor="s-mail">ایمیل</label><input id="s-mail" className="inp" dir="ltr" value=${email} readOnly/></div>
+          <div><button className="btn btn-p" type="submit" disabled=${busy}>ذخیرهٔ تغییرات</button></div>
+        </div>
+      </form>
+      <section className="card pad">
+        <div className="card-h"><div><h2>واحد پول</h2><p>همهٔ مبلغ‌ها با این واحد نمایش داده می‌شوند</p></div></div>
+        <div className="seg" role="group" aria-label="واحد پول"><button aria-pressed=${true}>تومان</button><button disabled=${true}>ریال · به‌زودی</button></div>
+      </section>
+    </div>
+    <div className="set-c">
+      <section className="card pad">
+        <div className="card-h"><div><h2>تم ظاهری</h2><p>روی خودکار، تم دستگاهت دنبال می‌شود</p></div></div>
+        <div className="theme-o">${[['dark','تیره','moon'],['light','روشن','sun'],['system','خودکار','monitor']].map(o=>html`<button key=${o[0]} aria-pressed=${prefs.theme===o[0]} onClick=${()=>setPrefs(p=>({...p,theme:o[0]}))}><${Icon} n=${o[2]} size=${22}/>${o[1]}</button>`)}</div>
+      </section>
+      <section className="card pad"><button className="btn" type="button" disabled=${busy} onClick=${signOut}>خروج از حساب</button></section>
+    </div>
+  </div>`;
+}
+
+/* ---------- shell ---------- */
+const NAV=[['dashboard','داشبورد','dash'],['transactions','تراکنش‌ها','swap'],['reports','گزارش‌های مالی','pie'],['categories','دسته‌بندی‌ها','grid'],['settings','تنظیمات','sliders']];
+const NAVS={dashboard:'داشبورد',transactions:'تراکنش‌ها',reports:'گزارش‌های مالی',categories:'دسته‌بندی‌ها',settings:'تنظیمات'};
+const Logo=()=>html`<svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true" style=${{flex:'none'}}>
+  <defs><linearGradient id="lgD" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#A78BFA"/><stop offset="1" stopColor="#6D3FE0"/></linearGradient></defs>
+  <rect width="38" height="38" rx="12" fill="url(#lgD)"/>
+  <path d="M14 10.5h5.2a8.5 8.5 0 0 1 0 17H14z" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinejoin="round"/>
+  <circle cx="19.5" cy="19" r="2.4" fill="#fff"/>
+</svg>`;
+
+const siteUrl = 'https://theili1.github.io/dara/';
+const db = window.supabase.createClient(
+  'https://hzjlekdjxbxhjnyhyxbv.supabase.co',
+  'sb_publishable_rJ3SlgivpogGAldOzxvAFw_JUP5_euE'
+);
+
+function checked(result) {
+  if (result.error) throw result.error;
+  return result.data;
+}
+
+function authError(error) {
+  const messages = {
+    invalid_credentials: 'ایمیل یا رمز عبور درست نیست.',
+    email_not_confirmed: 'ابتدا ایمیل خود را تأیید کن.',
+    over_email_send_rate_limit: 'برای ارسال ایمیل بعدی کمی صبر کن.',
+    weak_password: 'رمز عبور قوی‌تری انتخاب کن.'
+  };
+  return messages[error?.code] || 'درخواست انجام نشد. اتصال اینترنت را بررسی کن و دوباره تلاش کن.';
+}
+
+function Access({title, children}) {
+  return html`<main className="access" dir="rtl"><section className="card pad">
+    <div className="brand"><${Logo}/><div className="brand-t"><b>DARA</b><span>مدیریت مالی شخصی</span></div></div>
+    <h1>${title}</h1>${children}
+  </section></main>`;
+}
+
+function SignIn() {
+  const [signup, setSignup] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  async function submit(event) {
+    event.preventDefault();
+    if (busy) return;
+    const form = new FormData(event.currentTarget);
+    const email = form.get('email').trim();
+    const password = form.get('password');
+    setMessage('');
+    setBusy(true);
+    try {
+      if (signup) {
+        const name = form.get('name').trim();
+        if (!name) { setMessage('نام را وارد کن.'); return; }
+        const data = checked(await db.auth.signUp({
+          email, password, options: { emailRedirectTo: siteUrl, data: { display_name: name } }
+        }));
+        if (!data.session) setMessage('اگر ثبت‌نام انجام شده باشد، لینک تأیید به ایمیلت می‌رسد. پس از تأیید، وارد شو.');
+      } else {
+        checked(await db.auth.signInWithPassword({email, password}));
+      }
+    } catch (error) {
+      setMessage(authError(error));
+    } finally {
+      setBusy(false);
+    }
+  }
+  return html`<${Access} title=${signup?'ساخت حساب دارا':'ورود به دارا'}>
+    <form className="form-g" onSubmit=${submit}>
+      ${signup && html`<div className="field"><label htmlFor="auth-name">نام</label><input className="inp" id="auth-name" name="name" autoComplete="name" maxLength="100" required/></div>`}
+      <div className="field"><label htmlFor="auth-email">ایمیل</label><input className="inp" id="auth-email" name="email" type="email" dir="ltr" autoComplete="email" required/></div>
+      <div className="field"><label htmlFor="auth-password">رمز عبور</label><input className="inp" id="auth-password" name="password" type="password" dir="ltr" autoComplete=${signup?'new-password':'current-password'} minLength=${signup?8:undefined} required/></div>
+      ${message && html`<p role="status">${message}</p>`}
+      <button className="btn btn-p" disabled=${busy}>${busy?'در حال بررسی…':signup?'ثبت‌نام':'ورود'}</button>
+      <button type="button" className="link" disabled=${busy} onClick=${()=>{setSignup(!signup);setMessage('')}}>${signup?'قبلاً حساب ساخته‌ای؟ ورود':'حساب نداری؟ ثبت‌نام'}</button>
+    </form>
+  <//>`;
+}
+
+function fromTransaction(row) {
+  return { id: row.id, title: row.title, amount: Number(row.amount), type: row.type,
+    cat: row.category_id || '', date: row.transaction_date, desc: row.description };
+}
+
+async function readAll(table, userId) {
+  const rows = [];
+  let offset = 0;
+  while (true) {
+    const page = checked(await db.from(table).select('*').eq('user_id',userId)
+      .order('id').range(offset,offset+499));
+    rows.push(...page);
+    if (page.length < 500) return rows;
+    offset += page.length;
+  }
+}
+
+async function loadAccount(user) {
+  const [profile, categories, transactions] = await Promise.all([
+    db.from('dara_profiles').select('display_name').eq('user_id',user.id).maybeSingle().then(checked),
+    readAll('dara_categories',user.id),
+    readAll('dara_transactions',user.id)
+  ]);
+  let cats = categories;
+  if (!cats.length) {
+    const defaults = await Promise.all(CATS0.map(async ({id,...category}) => {
+      const bytes = new TextEncoder().encode(user.id + ':' + id);
+      const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)))
+        .slice(0,16).map(byte=>byte.toString(16).padStart(2,'0')).join('');
+      const uuid = [hash.slice(0,8),hash.slice(8,12),hash.slice(12,16),hash.slice(16,20),hash.slice(20)].join('-');
+      return {...category,id:uuid,user_id:user.id};
+    }));
+    checked(await db.from('dara_categories').upsert(defaults,{onConflict:'id',ignoreDuplicates:true}));
+    cats = await readAll('dara_categories',user.id);
+  }
+  const name = profile?.display_name || String(user.user_metadata?.display_name || 'کاربر دارا').slice(0,100);
+  return {profile:{name,email:user.email},cats,txns:transactions.map(fromTransaction)};
+}
+
+function SignedIn({user}) {
+  const [account, setAccount] = useState(null);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  const [exitError, setExitError] = useState('');
+  useEffect(()=>{
+    let active = true;
+    loadAccount(user).then(data=>{if(active)setAccount(data)})
+      .catch(()=>{if(active)setFailed(true)});
+    return ()=>{active=false};
+  },[user.id,attempt]);
+  async function signOut() {
+    setExitError('');
+    try { checked(await db.auth.signOut({scope:'local'})); }
+    catch { setExitError('خروج انجام نشد. دوباره تلاش کن.'); }
+  }
+  if (account) return html`<${App} user=${user} account=${account} signOut=${signOut} exitError=${exitError}/>`;
+  return html`<${Access} title=${failed?'بارگذاری حساب انجام نشد':'در حال بارگذاری حساب…'}>
+    ${failed && html`<div className="form-g"><button className="btn btn-p" onClick=${()=>{setFailed(false);setAttempt(attempt+1)}}>تلاش دوباره</button><button className="link" onClick=${signOut}>خروج از حساب</button><p role="status">${exitError}</p></div>`}
+  <//>`;
+}
+
+function Root() {
+  const [session,setSession] = useState(undefined);
+  useEffect(()=>{
+    const {data:{subscription}} = db.auth.onAuthStateChange((_event,next)=>setSession(next));
+    return ()=>subscription.unsubscribe();
+  },[]);
+  if (session === undefined) return html`<${Access} title="در حال بررسی ورود…"/>`;
+  if (!session) return html`<${SignIn}/>`;
+  return html`<${SignedIn} key=${session.user.id} user=${session.user}/>`;
+}
+
+function monthly(txns,n) {
+  const totals = new Map();
+  for (const tx of txns) {
+    const key = mkey(tx.date);
+    const total = totals.get(key) || {income:0,expense:0};
+    total[tx.type] += tx.amount;
+    totals.set(key,total);
+  }
+  return monthsBack(n).map(({y,m,label})=>{
+    const total = totals.get(y*100+m) || {income:0,expense:0};
+    return {label,income:total.income/1e6,expense:total.expense/1e6};
+  });
+}
+
+function expenseShares(txns,cats,keys) {
+  const totals = new Map();
+  let sum = 0;
+  for (const tx of txns) {
+    if (tx.type !== 'expense' || !keys.has(mkey(tx.date))) continue;
+    totals.set(tx.cat,(totals.get(tx.cat)||0)+tx.amount);
+    sum += tx.amount;
+  }
+  return Array.from(totals,([id,amount])=>{
+    const cat = cats.find(item=>item.id===id);
+    return {id,amount,name:cat?.name||'بدون دسته‌بندی',color:cat?.color||'#7C8CA8',value:amount/sum*100};
+  }).sort((a,b)=>b.amount-a.amount);
+}
+
+function App({user,account,signOut,exitError}){
+  const [page,setPage]=useState('dashboard');
+  const [txns,setTxns]=useState(account.txns);
+  const [cats,setCats]=useState(account.cats);
+  const [filters,setFilters]=useState({q:'',type:'all',cat:'all',date:'all'});
+  const [modal,setModal]=useState(null);
+  const [toastMsg,setToastMsg]=useState(null);
+  const [profile,setProfile]=useState(account.profile);
+  const [prefs,setPrefs]=useState(()=>{
+    try {
+      const theme=localStorage.getItem('dara-theme:'+user.id);
+      if(['light','system'].includes(theme))return {theme};
+    } catch {}
+    return {theme:'dark'};
+  });
+  const [navOpen,setNavOpen]=useState(false);
+  const [busy,setBusy]=useState(false);
+  const [error,setError]=useState('');
+  const writing=useRef(false);
+  const sysDark=useMedia('(prefers-color-scheme: dark)');
+  const theme=prefs.theme==='system'?(sysDark?'dark':'light'):prefs.theme;
+  useEffect(()=>{document.documentElement.setAttribute('data-dara',theme)},[theme]);
+  useEffect(()=>{
+    try {localStorage.setItem('dara-theme:'+user.id,prefs.theme)} catch {}
+  },[user.id,prefs.theme]);
+  const tRef=useRef();
+  const toast=m=>{setToastMsg(m);clearTimeout(tRef.current);tRef.current=setTimeout(()=>setToastMsg(null),2600)};
+  const go=p=>{setPage(p);setNavOpen(false);window.scrollTo({top:0})};
+  const goCat=id=>{setFilters({q:'',type:'all',cat:id,date:'all'});go('transactions')};
+
+  const s=useMemo(()=>sums(txns),[txns]);
+  const live={inc:s.inc,exp:s.exp,bal:s.net};
+  const series6=useMemo(()=>monthly(txns,6),[txns]);
+  const shares=useMemo(()=>expenseShares(txns,cats,new Set([CUR_KEY])),[txns,cats]);
+  const balances=useMemo(()=>{
+    let balance=s.net/1e6;
+    return series6.map((_,index)=>index).reverse().map(index=>{
+      const closing=balance;
+      balance-=series6[index].income-series6[index].expense;
+      return closing;
+    }).reverse();
+  },[s.net,series6]);
+
+  async function write(action) {
+    if(writing.current)return;
+    writing.current=true;
+    setBusy(true);
+    setError('');
+    try { await action(); }
+    catch { setError('ذخیره تغییرات انجام نشد. اتصال اینترنت را بررسی کن و دوباره تلاش کن.'); }
+    finally { writing.current=false;setBusy(false); }
+  }
+
+  const saveTx=tx=>write(async ()=>{
+    const row={user_id:user.id,title:tx.title,amount:tx.amount,type:tx.type,
+      category_id:tx.cat||null,transaction_date:tx.date,description:tx.desc};
+    const query=db.from('dara_transactions');
+    const saved=fromTransaction(checked(await (tx.id
+      ? query.update(row).eq('id',tx.id).eq('user_id',user.id)
+      : query.insert(row)).select().single()));
+    setTxns(list=>tx.id?list.map(item=>item.id===saved.id?saved:item):[saved,...list]);
+    setModal(null);
+    toast(tx.id?'تراکنش ویرایش شد':'تراکنش ثبت شد');
+  });
+  const delTx=id=>write(async ()=>{
+    checked(await db.from('dara_transactions').delete().eq('id',id).eq('user_id',user.id));
+    setTxns(list=>list.filter(item=>item.id!==id));
+    setModal(null);
+    toast('تراکنش حذف شد');
+  });
+  const saveCategory=category=>write(async ()=>{
+    const saved=checked(await db.from('dara_categories').insert({...category,user_id:user.id}).select().single());
+    setCats(list=>[...list,saved]);
+    setModal(null);
+    toast('دسته‌بندی اضافه شد');
+  });
+  const saveProfile=name=>write(async ()=>{
+    checked(await db.from('dara_profiles').upsert({user_id:user.id,display_name:name}));
+    setProfile(current=>({...current,name}));
+    toast('نام پروفایل ذخیره شد');
+  });
+
+  const openAdd=type=>setModal({k:'tx',preset:type});
+
+  const today=longDate(TODAY);
+  const initial=Array.from(profile.name.trim()||'؟')[0];
+
+  return html`<${ThemeCtx.Provider} value=${theme}>
+  <div className="app">
+    <div className="side-wrap">
+      <aside className=${'sidebar'+(navOpen?' open':'')} aria-label="منوی اصلی">
+        <div className="brand">
+          <${Logo}/>
+          <div className="brand-t lbl"><b>DARA</b><span>مدیریت مالی شخصی</span></div>
+          <button className="rail-toggle" aria-label=${navOpen?'بستن منو':'باز کردن منو'} aria-expanded=${navOpen} onClick=${()=>setNavOpen(o=>!o)}><${Icon} n=${navOpen?'x':'menu'} size=${19}/></button>
+        </div>
+        <nav className="nav">${NAV.map(n=>html`<button key=${n[0]} className="nav-i" aria-current=${page===n[0]?'page':undefined} aria-label=${n[1]} title=${n[1]} onClick=${()=>go(n[0])}><${Icon} n=${n[2]} size=${21}/><span className="lbl">${n[1]}</span></button>`)}</nav>
+        <button className="profile" onClick=${()=>go('settings')} aria-label="پروفایل کاربر">
+          <span className="avatar">${initial}</span>
+          <span className="meta lbl"><b>${profile.name}</b><span>حساب شخصی</span></span>
+        </button>
+      </aside>
+    </div>
+    <div className=${'nav-scrim'+(navOpen?' on':'')} onClick=${()=>setNavOpen(false)}></div>
+    <main className="main">
+      <header className="head">
+        <div>
+          ${page==='dashboard'?html`<h1>سلام، خوش آمدی 👋</h1><p>وضعیت مالی خودت رو اینجا مدیریت کن</p>`:html`<h1>${NAVS[page]}</h1><p>${page==='transactions'?'همهٔ درآمدها و هزینه‌هایت را جست‌وجو و مدیریت کن':page==='reports'?'تحلیل درآمد، هزینه و پس‌انداز در طول زمان':page==='categories'?'دسته‌بندی‌های درآمد و هزینه‌ات را سامان بده':'پروفایل و ترجیحات برنامه'}</p>`}
+        </div>
+        <div className="head-r">
+          <div className="datepill"><${Icon} n="cal" size=${17}/><span>${today}</span></div>
+          <span className="avatar sm" aria-hidden="true">${initial}</span>
+          <button className="btn btn-p hd" onClick=${()=>openAdd()} aria-label="ثبت تراکنش"><${Icon} n="plus" size=${19} sw=${2.4}/><span className="t">ثبت تراکنش</span></button>
+        </div>
+      </header>
+      ${(error||exitError)&&html`<p className="account-error" role="alert">${error||exitError}</p>`}
+      ${page==='dashboard'&&html`<${Dashboard} txns=${txns} cats=${cats} live=${live} go=${go} onAdd=${openAdd} series6=${series6} balances=${balances} shares=${shares}/>`}
+      ${page==='transactions'&&html`<${TxPage} txns=${txns} cats=${cats} filters=${filters} setFilters=${setFilters} onAdd=${openAdd} onEdit=${t=>setModal({k:'tx',edit:t})} onDel=${t=>setModal({k:'del',tx:t})}/>`}
+      ${page==='reports'&&html`<${Reports} txns=${txns} cats=${cats}/>`}
+      ${page==='categories'&&html`<${Categories} txns=${txns} cats=${cats} onAddCat=${()=>setModal({k:'cat'})} openCat=${goCat}/>`}
+      ${page==='settings'&&html`<${Settings} profile=${profile} saveProfile=${saveProfile} prefs=${prefs} setPrefs=${setPrefs} signOut=${signOut} busy=${busy}/>`}
+    </main>
+    <nav className="bnav" aria-label="ناوبری پایین">${NAV.map(n=>html`<button key=${n[0]} aria-current=${page===n[0]?'page':undefined} onClick=${()=>go(n[0])}><${Icon} n=${n[2]} size=${21}/><span>${n[0]==='reports'?'گزارش‌ها':n[0]==='categories'?'دسته‌ها':n[1]}</span></button>`)}</nav>
+    ${modal&&modal.k==='tx'&&html`<${TxModal} busy=${busy} error=${error} cats=${cats} initial=${modal.edit} preset=${modal.preset} onSave=${saveTx} onClose=${()=>{if(!writing.current){setModal(null);setError('')}}}/>`}
+    ${modal&&modal.k==='del'&&html`<${ConfirmDel} busy=${busy} error=${error} tx=${modal.tx} onYes=${()=>delTx(modal.tx.id)} onClose=${()=>{if(!writing.current){setModal(null);setError('')}}}/>`}
+    ${modal&&modal.k==='cat'&&html`<${CatModal} busy=${busy} error=${error} cats=${cats} onSave=${saveCategory} onClose=${()=>{if(!writing.current){setModal(null);setError('')}}}/>`}
+    ${toastMsg&&html`<div className="toast" role="status"><${Icon} n="check" size=${18} sw=${2.4}/>${toastMsg}</div>`}
+  </div>
+  <//>`;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(Root));
+})();
+</script>
+
+</body></html>
