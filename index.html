@@ -1033,10 +1033,27 @@ function authError(error) {
   const messages = {
     invalid_credentials: 'ایمیل یا رمز عبور درست نیست.',
     email_not_confirmed: 'ابتدا ایمیل خود را تأیید کن.',
+    email_address_not_authorized: 'Supabase اجازه ارسال ایمیل تأیید به این آدرس را نمی‌دهد. برای ثبت‌نام عمومی، ارسال ایمیل پروژه باید تنظیم شود.',
+    email_address_invalid: 'آدرس ایمیل را بررسی کن.',
+    email_provider_disabled: 'ورود با ایمیل در Supabase غیرفعال است.',
+    signup_disabled: 'ثبت‌نام در تنظیمات Supabase غیرفعال است.',
+    user_already_exists: 'این ایمیل قبلاً ثبت شده است. از فرم ورود استفاده کن.',
+    over_request_rate_limit: 'تعداد درخواست‌ها زیاد است. کمی صبر کن و دوباره تلاش کن.',
     over_email_send_rate_limit: 'برای ارسال ایمیل بعدی کمی صبر کن.',
     weak_password: 'رمز عبور قوی‌تری انتخاب کن.'
   };
-  return messages[error?.code] || 'درخواست انجام نشد. اتصال اینترنت را بررسی کن و دوباره تلاش کن.';
+  const code = error?.code;
+  if (typeof code === 'string' && Object.hasOwn(messages, code)) return messages[code];
+  if (error?.name === 'AuthRetryableFetchError' && (!error.status || error.status === 0)) {
+    return 'مرورگر نتوانست به سرویس ورود Supabase وصل شود. اتصال اینترنت یا محدودیت شبکه را بررسی کن.';
+  }
+  if (typeof code === 'string' && /^[a-z0-9_]{1,80}$/.test(code)) {
+    return 'درخواست ورود یا ثبت‌نام انجام نشد. کد خطا: ' + code;
+  }
+  if (Number.isInteger(error?.status) && error.status > 0) {
+    return 'سرویس ورود خطا داد. وضعیت HTTP: ' + error.status;
+  }
+  return 'درخواست ورود یا ثبت‌نام انجام نشد. دوباره تلاش کن.';
 }
 
 function Access({title, children}) {
